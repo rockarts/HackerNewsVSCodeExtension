@@ -11,14 +11,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.sayHello"
+		"onCommand:hackernews.topstories"
 	],
 	"main": "./extension",
 	"contributes": {
 		"commands": [{
-			"command": "extension.sayHello",
-			"title": "Hello World"
-		}]
+        "command": "hackernews.topstories",
+        "title": "HackerNews: Display the top stories from HackerNews"
+      }]
 	},
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install"
