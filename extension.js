@@ -12,23 +12,29 @@ var Firebase = require('firebase');
 function loadTopStories() {
 
     var myFirebaseRef = new Firebase("https://hacker-news.firebaseio.com/v0");
-
+    var html = "<html><body>";
     myFirebaseRef.child("topstories").on("value", function(snapshot) {
         snapshot.val().forEach(function(element) {
             var itemValue = "item/" + element;
             myFirebaseRef.child(itemValue).on("value", function(snapshot) {
-                console.log(snapshot.val());  
+                var json2html = require('node-json2html');
+                var transform = {"tag":"div","children":[{"tag":"a","href":"${url}","html":"${title}"}]}
+                var data = snapshot.val();
+                const docProvider = {
+                    provideTextDocumentContent: () => json2html.transform(data,transform)
+                };
+                console.log(json2html.transform(data,transform) );
+                vscode.workspace.registerTextDocumentContentProvider('hackernews', docProvider);
+                vscode.commands.executeCommand("vscode.previewHtml",
+                        vscode.Uri.parse("hackernews://base"), vscode.ViewColumn.One)
+                        .then(() => 1, error => console.log(error));
+
+//LivingSocial Is Laying Off More Than 50 Percent of Its Staff (recode.net)
+//31 points by danso 37 minutes ago | 12 comments
+
             });
         }, this);
     });
-
-    const docProvider = {
-		provideTextDocumentContent: () => "<html><body><h1>This is a test</h1></body></html>"
-	};
-	vscode.workspace.registerTextDocumentContentProvider('hackernews', docProvider);
-	vscode.commands.executeCommand("vscode.previewHtml",
-			vscode.Uri.parse("hackernews://base"), vscode.ViewColumn.One)
-			.then(() => 1, error => console.log(error));
 }
 
 // this method is called when your extension is activated
