@@ -2,7 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 var vscode = require('vscode');
 var Firebase = require('firebase');
-
+var json2html = require('node-json2html');
+var moment = require('moment');
 //this.statusBarItemMain = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 6);
 //this.statusBarItemMain.text = '$(home) Hacker News'
 //this.statusBarItemMain.tooltip = 'HackerNews Top Stories';
@@ -12,29 +13,35 @@ var Firebase = require('firebase');
 function loadTopStories() {
 
     var myFirebaseRef = new Firebase("https://hacker-news.firebaseio.com/v0");
-    var html = "<html><body>";
-    myFirebaseRef.child("topstories").on("value", function(snapshot) {
+    
+    myFirebaseRef.child("topstories").once("value", function(snapshot) {
         snapshot.val().forEach(function(element) {
             var itemValue = "item/" + element;
-            myFirebaseRef.child(itemValue).on("value", function(snapshot) {
-                var json2html = require('node-json2html');
-                var transform = {"tag":"div","children":[{"tag":"a","href":"${url}","html":"${title}"}]}
-                var data = snapshot.val();
-                const docProvider = {
-                    provideTextDocumentContent: () => json2html.transform(data,transform)
-                };
-                console.log(json2html.transform(data,transform) );
-                vscode.workspace.registerTextDocumentContentProvider('hackernews', docProvider);
-                vscode.commands.executeCommand("vscode.previewHtml",
-                        vscode.Uri.parse("hackernews://base"), vscode.ViewColumn.One)
-                        .then(() => 1, error => console.log(error));
-
-//LivingSocial Is Laying Off More Than 50 Percent of Its Staff (recode.net)
-//31 points by danso 37 minutes ago | 12 comments
-
+            return myFirebaseRef.child(itemValue).once("value", function(snapshot) {
+                console.log(moment().format());
+                return transformJson(snapshot.val());
             });
         }, this);
     });
+}
+
+function transformJson(data, html) {
+    //LivingSocial Is Laying Off More Than 50 Percent of Its Staff (recode.net)
+    //31 points by danso 37 minutes ago | 12 comments
+
+    var transform = {"tag":"div","children":[{"tag":"a","href":"${url}","html":"${title}"}]};
+    // const docProvider = {
+    //                 provideTextDocumentContent: () => json2html.transform(data,transform)
+    //             };
+    // console.log(json2html.transform(data,transform) );
+    // vscode.workspace.registerTextDocumentContentProvider('hackernews', docProvider);
+    // vscode.commands.executeCommand("vscode.previewHtml",
+    //         vscode.Uri.parse("hackernews://base"), vscode.ViewColumn.One)
+    //         .then(() => 1, error => console.log(error));
+    html = json2html.transform(data, transform);
+    console.log("--------------------------------------------------");
+    console.log(html);
+    return html;
 }
 
 // this method is called when your extension is activated
